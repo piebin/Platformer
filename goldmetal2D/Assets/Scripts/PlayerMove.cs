@@ -28,8 +28,10 @@ public class PlayerMove : MonoBehaviour
         anim = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
         boxCollider = GetComponent<BoxCollider2D>();
+        //사용할거 초기화는 필수. 
     }
 
+    //상황별 오디오
     void playSound(string action)
     {
         switch(action)
@@ -109,16 +111,19 @@ public class PlayerMove : MonoBehaviour
             Debug.DrawRay(rigid.position, Vector3.down, new Color(1, 0, 0));
 
                     RaycastHit2D rayHit = Physics2D.Raycast(rigid.position, Vector3.down, 1, LayerMask.GetMask("Platform"));
+            //내 위치에서 아래방향으로 레이 쏴서 플랫폼 있는지 확인
 
                     if(rayHit.collider != null)
                     {
                         if(rayHit.distance < 0.5f)
                             anim.SetBool("isJumping", false);
+                        //플랫폼과의 거리가 가까우면 jump상태가 아님.
                     }
         }
         
     }
 
+    //몬스터와의 충돌
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if(collision.gameObject.tag == "Enermy")
@@ -131,8 +136,10 @@ public class PlayerMove : MonoBehaviour
         }
     }
 
+    //몬스터 외 다른 오브젝트와의 충돌
     void OnTriggerEnter2D(Collider2D collision)
     {
+        //Item
         if (collision.gameObject.tag == "Item")
         {
             bool Isbronze = collision.gameObject.name.Contains("Bonrze");
@@ -149,6 +156,7 @@ public class PlayerMove : MonoBehaviour
             playSound("ITEM");
             collision.gameObject.SetActive(false);
         }
+        //Finish
         else if(collision.gameObject.tag == "Finish")
         {
             playSound("FINISH");
@@ -157,6 +165,7 @@ public class PlayerMove : MonoBehaviour
             
     }
 
+    //Attack
     void OnAttack(Transform enermy)
     {
         
@@ -166,15 +175,20 @@ public class PlayerMove : MonoBehaviour
 
         EnermyMove enermyMove = enermy.GetComponent<EnermyMove>();
         enermyMove.OnDamaged();
+        //enermyMove의 onDamged함수를 실행시킴.
 
         playSound("ATTACK");
     }
 
+    //Damaged
     void OnDamaged(Vector2 targetPos)
     {
         gm.HealthDown();
+        //gameManager의 healthDown함수 실행.
+
         gameObject.layer = 11;
         spriteR.color = new Color(1, 0, 0, 1);
+        //플레이어의 레이어를 damaged레이어로 바꿈.->무적상태.
 
         int dirc = transform.position.x - targetPos.x > 0 ? 1 : -1;
         rigid.AddForce(new Vector2(dirc, 1)*7, ForceMode2D.Impulse);
@@ -182,18 +196,21 @@ public class PlayerMove : MonoBehaviour
         playSound("DAMAGED");
 
         anim.SetTrigger("doDamaged");
+        //doDamaged트리거를 셋함->damaged애니메이션 실행위해.
 
         Invoke("OffDamaged", 3);
+        //OffDamaged함수를 3초 뒤 실행함.
 
 
     }
-
+    //damaged상태가 끝난 후
     void OffDamaged()
     {
         gameObject.layer = 10;
         spriteR.color = new Color(1, 1, 1, 1);
     }
 
+    //Die
     public void OnDie()
     {
         rigid.AddForce(Vector2.up * 5, ForceMode2D.Impulse);
@@ -208,5 +225,6 @@ public class PlayerMove : MonoBehaviour
     public void VelocityZero()
     {
         rigid.velocity = Vector2.zero;
+        //속도를 0으로 만들어줌.
     }
 }
